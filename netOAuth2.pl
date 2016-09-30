@@ -1,12 +1,30 @@
+use JSON;
 use LWP::Protocol::https;
 use Mojolicious::Lite;
 use Net::OAuth2::Client;
 
+sub config {
+  open (my $fh, '<', './config.json') || die "can't open $!";
+  my $data;
+  eval{
+    local $/ = undef;
+    my $json_text = <$fh>;
+    close $fh;
+    $data = decode_json($json_text);
+  };
+  if ($@) {
+    print STDERR ("invalid json text: $@\n");
+    exit 1;
+  }
+  return $data;
+};
+
+
 sub auth {
     my $uri = shift;
     return Net::OAuth2::Client->new(
-        '<client id>',
-        '<client secret>',
+        config->{client_id},
+        config->{client_secret},
         site             => 'https://www.googleapis.com',
         authorize_url    => 'https://accounts.google.com/o/oauth2/auth',
         access_token_url => 'https://accounts.google.com/o/oauth2/token',
