@@ -1,10 +1,27 @@
+use JSON;
 use Mojolicious::Lite;
 use Mojolicious::Plugin::OAuth2;
 
+sub config {
+  open (my $fh, '<', './config.json') || die "can't open $!";
+  my $data;
+  eval{
+    local $/ = undef;
+    my $json_text = <$fh>;
+    close $fh;
+    $data = decode_json($json_text);
+  };
+  if ($@) {
+    print STDERR ("invalid json text: $@\n");
+    exit 1;
+  }
+  return $data;
+};
+
 plugin 'OAuth2' => {
   google => {
-    key => '<client key>',
-    secret => '<client secret>',
+    key => config->{client_id},
+    secret => config->{client_secret},
   },
 };
 
