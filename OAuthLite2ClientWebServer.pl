@@ -1,6 +1,8 @@
 use JSON;
 use Mojolicious::Lite;
 use OAuth::Lite2::Client::WebServer;
+use LWP::UserAgent;
+use URI;
 
 
 my $app = app;
@@ -33,10 +35,29 @@ sub start_authorize {
   my $app = shift;
   my $redirect_uri = $client->uri_to_redirect(
     redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
-    scope => 'profile',
+    scope => 'profile email',
   );
   $app->redirect_to($redirect_uri);
 }
+
+sub get_token_info {
+  my $access_token = shift;
+  my $ua = LWP::UserAgent->new;
+  my $params = { access_token => $access_token };
+  my $uri = URI->new('https://www.googleapis.com/oauth2/v1/tokeninfo');
+  $uri->query_form($params);
+
+  $ua->timeout(3);
+  $ua->env_proxy;
+  my $response = $ua->get($uri);
+  if ($response->is_success) {
+    return $response->content;
+  }
+  else {
+    $app->log->info($response->content);
+    die $response->status_line;
+  }
+};
 
 get '/' => sub {
   my $self = shift;
@@ -61,15 +82,18 @@ get '/callback' => sub {
   my $self = shift;
   my $code = $self->req->params->to_hash->{code};
 
-  my $access_token = $client->get_access_token(
+  my $t = $client->get_access_token(
     code => $code,
     redirect_uri => $self->url_for('callback')->userinfo(undef)->to_abs,
   ) or $self->redirect_to("401", "status" => 401);
   $self->session(
-    access_token => $access_token,
-    expires_at   => time() + $access_token->expires_in,
-    access_token => $access_token->refresh_token,
+    access_token  => $t->access_token,
+    expires_at    => time() + $t->expires_in,
+    refresh_token => $t->refresh_token,
+    scope         => $t->scope,
+    token_info    => get_token_info($t->access_token),
   );
+
 };
 
 app->start;
@@ -92,4 +116,6 @@ my $user = stash('params');
 401 Client Error.
 
 @@ callback.html.ep
+<%= session 'token_info' %>
+
 callback
