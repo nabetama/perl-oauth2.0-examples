@@ -111,7 +111,7 @@ get '/login' =>sub {
 
 get '/callback' => sub {
   my $self = shift;
-  $self->redirect_to('index');
+  $self->redirect_to('/');
   return 1;
 };
 
