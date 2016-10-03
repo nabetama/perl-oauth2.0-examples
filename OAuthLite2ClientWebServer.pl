@@ -148,11 +148,6 @@ get '/callback' => sub {
   return 1;
 };
 
-get '401' =>sub {
-  my $self = shift;
-  return 1;
-};
-
 get '/logout' => sub {
   my $self = shift;
   $self->session(expires => 1);
