@@ -51,7 +51,7 @@ sub get_token_info {
   $ua->env_proxy;
   my $response = $ua->get($uri);
   if ($response->is_success) {
-    return $response->content;
+    return decode_json($response->content);
   }
   else {
     $app->log->info($response->content);
