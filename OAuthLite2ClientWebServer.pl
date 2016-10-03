@@ -116,6 +116,7 @@ my $user = stash('params');
 401 Client Error.
 
 @@ callback.html.ep
-<%= session 'token_info' %>
+<% my $userinfo = session 'token_info'; %>
+<%=  $userinfo->{'email'} %>
 
 callback
