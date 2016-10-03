@@ -1,6 +1,7 @@
 use JSON;
 use Mojolicious::Lite;
 use OAuth::Lite2::Client::WebServer;
+use Scalar::Util 'looks_like_number';
 use LWP::UserAgent;
 use URI;
 
@@ -59,16 +60,20 @@ sub get_token_info {
   }
 };
 
-get '/' => sub {
+under sub {
   my $self = shift;
-  if ( ! $self->session->{authed} ) {
+  if ( ! $self->session->{token_info} ) {
     $self->redirect_to('login');
   }
+  return 1;
+};
+
+get '/' => sub {
+  my $self = shift;
   return $self->render(
     'index',
     'params' => {
-      'user' =>  'nabetama',
-      'authed' => $self->session->{authed},
+      'user' =>  $self->session->{token_info}->{email},
     }
   );
 };
@@ -86,6 +91,10 @@ get '/callback' => sub {
     code => $code,
     redirect_uri => $self->url_for('callback')->userinfo(undef)->to_abs,
   ) or $self->redirect_to("401", "status" => 401);
+  if ( !$t ) {
+    return 1;
+  }
+
   $self->session(
     access_token  => $t->access_token,
     expires_at    => time() + $t->expires_in,
@@ -96,21 +105,21 @@ get '/callback' => sub {
 
 };
 
+get '401' =>sub {
+  my $self = shift;
+  return 1;
+};
+
 app->start;
 __DATA__
 
 @@ index.html.ep
+<p>index.html</p>
 <%
 my $user = stash('params');
 %>
 <%= $user->{user} %> Login.
 
-
-@@ login.html.ep
-<%
-my $user = stash('params');
-%>
-<%= $user->{user} %> Login.
 
 @@ 401.html.ep
 401 Client Error.
