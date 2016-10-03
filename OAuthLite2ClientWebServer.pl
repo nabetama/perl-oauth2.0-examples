@@ -89,12 +89,27 @@ sub is_access_to_callback {
 }
 
 sub is_expire {
-  my $expires_at = shift;
-  if ( $expires_at < time()) {
+  my $app = shift;
+  if ( $app->session('expires_at') < time()) {
     return 1;
   }
   return 0;
 }
+
+sub refresh_access_token {
+  my $app = shift;
+  my $t = $client->refresh_access_token(
+    refresh_token => $app->session('refresh_token'),
+  ) or return undef;
+  $app->session(
+    access_token  => $t->access_token,
+    expires_at    => time() + $t->expires_in,
+    refresh_token => $t->refresh_token,
+    scope         => $t->scope,
+    token_info    => get_token_info($t->access_token),
+  );
+  return 1;
+};
 
 under sub {
   my $self = shift;
@@ -106,11 +121,9 @@ under sub {
     }
     $self->redirect_to('login');
   }
-  if (is_expire($self->session('expires_at'))) {
-    $self->session(expires => 1);
-    $self->redirect_to('/login');
+  if (is_expire($self)) {
+    refresh_access_token($self);
   }
-
   return 1;
 };
 
@@ -140,11 +153,29 @@ get '401' =>sub {
   return 1;
 };
 
+get '/logout' => sub {
+  my $self = shift;
+  $self->session(expires => 1);
+  return 1;
+};
+
 app->start;
 __DATA__
 
 @@ index.html.ep
 <p>index.html</p>
+<% my $userinfo = session 'token_info'; %>
+<%=  $userinfo->{email} %>
+
+Expires_at
+<%= session 'expires_at' %>
+Refresh_token
+<%= session 'refresh_token' %>
+
+
+@@logout.html.ep
+<p>logout.html</p>
+Bye!
 <% my $userinfo = session 'token_info'; %>
 <%=  $userinfo->{email} %>
 <p>
@@ -153,14 +184,3 @@ Expires_at
 <%= session 'expires_at' %>
 Refresh_token
 <%= session 'refresh_token' %>
-
-
-@@ 401.html.ep
-401 Client Error.
-
-
-@@ callback.html.ep
-<p>callback.html</p>
-<% my $userinfo = session 'token_info'; %>
-<%=  $userinfo->{'email'} %>
-
