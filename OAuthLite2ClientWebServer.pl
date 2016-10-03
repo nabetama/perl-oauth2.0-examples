@@ -64,7 +64,7 @@ sub set_token_info {
   my $t = $client->get_access_token(
     code => $code,
     redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
-  ) or '';
+  ) or return '';
 
   if ( !$t ) {
     return 1;
