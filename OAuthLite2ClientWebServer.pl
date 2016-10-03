@@ -104,8 +104,6 @@ sub refresh_access_token {
   $app->session(
     access_token  => $t->access_token,
     expires_at    => time() + $t->expires_in,
-    refresh_token => $t->refresh_token,
-    scope         => $t->scope,
     token_info    => get_token_info($t->access_token),
   );
   return 1;
