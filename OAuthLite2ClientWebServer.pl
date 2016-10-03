@@ -36,6 +36,7 @@ sub start_authorize {
   my $redirect_uri = $client->uri_to_redirect(
     redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
     scope => 'profile email',
+    extra => {approval_prompt=>'force', access_type=>'offline'},
   );
   $app->redirect_to($redirect_uri);
 }
@@ -146,7 +147,12 @@ __DATA__
 <p>index.html</p>
 <% my $userinfo = session 'token_info'; %>
 <%=  $userinfo->{email} %>
+<p>
+
+Expires_at
 <%= session 'expires_at' %>
+Refresh_token
+<%= session 'refresh_token' %>
 
 
 @@ 401.html.ep
