@@ -5,7 +5,7 @@ use LWP::UserAgent;
 use URI;
 
 
-my $app = app;
+my $g_app = app;
 
 
 sub config {
@@ -55,7 +55,7 @@ sub get_token_info {
     return decode_json($response->content);
   }
   else {
-    $app->log->info($response->content);
+    $g_app->log->info($response->content);
     die $response->status_line;
   }
 };
