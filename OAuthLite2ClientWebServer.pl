@@ -111,7 +111,7 @@ get '/login' =>sub {
 
 get '/callback' => sub {
   my $self = shift;
-
+  $self->redirect_to('index');
   return 1;
 };
 
@@ -125,17 +125,16 @@ __DATA__
 
 @@ index.html.ep
 <p>index.html</p>
-<%
-my $user = stash('params');
-%>
-<%= $user->{user} %> Login.
+<% my $userinfo = session 'token_info'; %>
+<%=  $userinfo->{'email'} %>
 
 
 @@ 401.html.ep
 401 Client Error.
 
+
 @@ callback.html.ep
+<p>callback.html</p>
 <% my $userinfo = session 'token_info'; %>
 <%=  $userinfo->{'email'} %>
 
-callback
