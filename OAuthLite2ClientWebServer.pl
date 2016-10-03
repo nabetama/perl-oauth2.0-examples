@@ -60,9 +60,35 @@ sub get_token_info {
   }
 };
 
+sub set_token_info {
+  my ($app, $code) = @_;
+  
+  my $t = $client->get_access_token(
+    code => $code,
+    redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
+  ) or '';
+
+  if ( !$t ) {
+    return 1;
+  }
+
+  $app->session(
+    access_token  => $t->access_token,
+    expires_at    => time() + $t->expires_in,
+    refresh_token => $t->refresh_token,
+    scope         => $t->scope,
+    token_info    => get_token_info($t->access_token),
+  );
+};
+
 under sub {
   my $self = shift;
-  if ( ! $self->session->{token_info} ) {
+  my $token_info = $self->session->{token_info};
+  if ( ! $token_info ) {
+    my $code = $self->req->params->to_hash->{code};
+    if ( $code ) {
+      set_token_info($self, $code);
+    }
     $self->redirect_to('login');
   }
   return 1;
@@ -85,24 +111,8 @@ get '/login' =>sub {
 
 get '/callback' => sub {
   my $self = shift;
-  my $code = $self->req->params->to_hash->{code};
 
-  my $t = $client->get_access_token(
-    code => $code,
-    redirect_uri => $self->url_for('callback')->userinfo(undef)->to_abs,
-  ) or $self->redirect_to("401", "status" => 401);
-  if ( !$t ) {
-    return 1;
-  }
-
-  $self->session(
-    access_token  => $t->access_token,
-    expires_at    => time() + $t->expires_in,
-    refresh_token => $t->refresh_token,
-    scope         => $t->scope,
-    token_info    => get_token_info($t->access_token),
-  );
-
+  return 1;
 };
 
 get '401' =>sub {
