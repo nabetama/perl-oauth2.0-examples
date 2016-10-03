@@ -36,7 +36,7 @@ sub start_authorize {
   my $redirect_uri = $client->uri_to_redirect(
     redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
     scope => 'profile email',
-    extra => {approval_prompt=>'force', access_type=>'offline'},
+    extra => {approval_prompt=>'force', access_type=>'offline'}, # Maybe, only Google OAuth2.0.
   );
   $app->redirect_to($redirect_uri);
 }
