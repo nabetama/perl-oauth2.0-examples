@@ -1,7 +1,6 @@
 use JSON;
 use Mojolicious::Lite;
 use OAuth::Lite2::Client::WebServer;
-use Scalar::Util 'looks_like_number';
 use LWP::UserAgent;
 use URI;
 
