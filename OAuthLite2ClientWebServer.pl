@@ -62,7 +62,6 @@ sub get_token_info {
 
 sub set_token_info {
   my ($app, $code) = @_;
-  
   my $t = $client->get_access_token(
     code => $code,
     redirect_uri => $app->url_for('callback')->userinfo(undef)->to_abs,
@@ -81,12 +80,20 @@ sub set_token_info {
   );
 };
 
+sub is_access_to_callback {
+  my $code = shift;
+  if ($code) {
+    return 1;
+  }
+  return 0;
+}
+
 under sub {
   my $self = shift;
   my $token_info = $self->session->{token_info};
   if ( ! $token_info ) {
     my $code = $self->req->params->to_hash->{code};
-    if ( $code ) {
+    if ( is_access_to_callback($code) ) {
       set_token_info($self, $code);
     }
     $self->redirect_to('login');
