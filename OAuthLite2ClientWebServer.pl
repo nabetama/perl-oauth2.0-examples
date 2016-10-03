@@ -87,6 +87,14 @@ sub is_access_to_callback {
   return 0;
 }
 
+sub is_expire {
+  my $expires_at = shift;
+  if ( $expires_at < time()) {
+    return 1;
+  }
+  return 0;
+}
+
 under sub {
   my $self = shift;
   my $token_info = $self->session->{token_info};
@@ -97,6 +105,11 @@ under sub {
     }
     $self->redirect_to('login');
   }
+  if (is_expire($self->session('expires_at'))) {
+    $self->session(expires => 1);
+    $self->redirect_to('/login');
+  }
+
   return 1;
 };
 
@@ -132,7 +145,8 @@ __DATA__
 @@ index.html.ep
 <p>index.html</p>
 <% my $userinfo = session 'token_info'; %>
-<%=  $userinfo->{'email'} %>
+<%=  $userinfo->{email} %>
+<%= session 'expires_at' %>
 
 
 @@ 401.html.ep
