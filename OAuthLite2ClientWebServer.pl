@@ -25,10 +25,10 @@ sub config {
 };
 
 my $client = OAuth::Lite2::Client::WebServer->new(
-  id => config->{client_id},
-  secret => config->{client_secret},
-  authorize_uri => 'https://accounts.google.com/o/oauth2/auth',
-  access_token_uri => 'https://accounts.google.com/o/oauth2/token',
+  id               => config->{client_id},
+  secret           => config->{client_secret},
+  authorize_uri    => config->{authorize_uri},
+  access_token_uri => config->{access_token_uri},
 );
 
 sub start_authorize {
@@ -45,7 +45,7 @@ sub get_token_info {
   my $access_token = shift;
   my $ua = LWP::UserAgent->new;
   my $params = { access_token => $access_token };
-  my $uri = URI->new('https://www.googleapis.com/oauth2/v1/tokeninfo');
+  my $uri = URI->new(config->{token_info_uri});
   $uri->query_form($params);
 
   $ua->timeout(3);
