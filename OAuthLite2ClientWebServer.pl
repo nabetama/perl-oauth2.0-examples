@@ -80,7 +80,7 @@ sub set_token_info {
   );
 };
 
-sub is_access_to_callback {
+sub access_to_callback {
   my $code = shift;
   if ($code) {
     return 1;
@@ -114,7 +114,7 @@ under sub {
   my $token_info = $self->session->{token_info};
   if ( ! $token_info ) {
     my $code = $self->req->params->to_hash->{code};
-    if ( is_access_to_callback($code) ) {
+    if ( access_to_callback($code) ) {
       set_token_info($self, $code);
     }
     $self->redirect_to('login');
