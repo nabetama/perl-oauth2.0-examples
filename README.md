@@ -1,5 +1,8 @@
 # Perl OAuth2 Example
 
+`Mojolicious::Lite`前提.
+
+使い比べてみると`OAuth::Lite2` が良かった
 
 ## Files
 
